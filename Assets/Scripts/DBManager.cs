@@ -8,183 +8,150 @@ using UnityEngine.Networking;
 
 using System.Threading.Tasks;
 
-
-public class DBManager 
+public record API
 {
-    //public new string name;
-   // public string password;
-    public InputField inputName;
-    public InputField inputPassword;
-    public Text regText;
-    public Text logInText;
-    public bool isLoggedIn=false;
-    public void StartUpdateUser()
-    {
-        StartCoroutine(UpdateUser());
-    }
-    public void StartRegisterUser()
-    {
-        StartCoroutine(RegisterUser());
-    }
-    public void StartLoginUser()
-    {
-        StartCoroutine(Login());
-    }
-
-    /*private IEnumerator Send()
-    {
-        WWWForm form = new WWWForm();
-        form.AddField("test","Hello");
-        WWW www=new WWW("https://mrvester.games/files/scripts/", form);
-       
-        yield return www;
-        if (www.error!=null)
-        {
-            userInfo.text="Ошибка: " +www.error;
-        }
-        userInfo.text = "Ответ сервера: " + www.text;
-
-    }*/
-
-
-    private IEnumerator RegisterUser()
-    {
-        WWWForm form = new WWWForm();
-        form.AddField("name", inputName.text);
-        form.AddField("password", inputPassword.text);
-        WWW www = new WWW("https://mrvester.games/files/coursework/register.php", form);
-
-        yield return www;
-        if (www.error != null)
-        {
-            regText.color= Color.red;
-            regText.text = "Ошибкa: " + www.error;
-        }
-        else
-        {
-            regText.color = Color.black;
-            regText.text = "Ответ сервера:\n" + www.text;
-        }
-        
-
-    }
-
-    public UnityWebRequest WebRequestPOST(string path, WWWForm form)
-    {
-        using UnityWebRequest request = UnityWebRequest.Post(path, form);
-        request.SendWebRequest();
-
-        logInText.text = null;
-        if (request.error != null)
-        {
-            logInText.color = Color.red;
-            logInText.text = "Ошибка: " + request.error;
-
-            return;
-        }
-
-        return request;
-    }
-
-    private IEnumerator Login()
-    {
-        WWWForm form = new WWWForm();
-        form.AddField("name", inputName.text);
-        form.AddField("password", inputPassword.text);
-
-        UnityWebRequest request = WebRequestPOST("https://mrvester.games/files/coursework/login.php", form);
-
-        /*WWWForm form = new WWWForm();
-        form.AddField("name", inputName.text);
-        form.AddField("password", inputPassword.text);
-        WWW www = new WWW("https://mrvester.games/files/coursework/login.php", form);
-
-        yield return www;*/
-
-
-        /*if (request.error != null)
-        {
-            logInText.color = Color.red;
-            logInText.text = "Ошибка: " + request.error;
-
-            yield break;
-        }*/
-
-            logInText.color = Color.black;
-
-
-            Response response = JsonUtility.FromJson<Response>(request.downloadHandler.text);
-            Debug.Log(response.payload.user.id);
-
-            /* isLoggedIn = Convert.ToBoolean(www.text);
-             if (!isLoggedIn)
-             {
-                 logInText.color = Color.red;
-                 logInText.text = "Пользователь не найден или неправильный пароль";
-             }
-             else
-             {
-
-
-                 SceneManager.LoadScene("delete");
-             }*/
-    }
-
-    public IEnumerator UpdateUser()
-    {
-        WWWForm form = new WWWForm();
-        form.AddField("name", inputName.text);
-        form.AddField("password", inputPassword.text);
-        WWW www = new WWW("https://mrvester.games/files/coursework/update.php", form);
-
-        yield return www;
-        if (www.error != null)
-        {
-            regText.color = Color.red;
-            regText.text = "Ошибка: " + www.error;
-        }
-        else
-        {
-            regText.color = Color.black;
-            regText.text = "Ответ сервера:\n" + www.text;
-        }
-
-    }
-
+  private static string host = "https://mrvester.games/files/coursework/";
+  public static string postLogin = host + "login.php";
+  public static string postRegister = host + "register.php";
+  public static string postUpdate = host + "update.php";
 }
 
-[Serializable]
-public struct Response
+public struct Response<P>
 {
-    string error;
-    IPayload payload;
+  public string error { get; }
+  public P payload;
 }
 
-[Serializable]
-public struct IPayload
+public struct EmptyPayload { }
+
+public struct UserPayload
 {
-    IUser user;
+  public User user;
 }
 
-[Serializable]
-public struct IUser
+// [Serializable]
+public struct User
 {
-    int id;
-    string name;
+  public int id;
+  public string name;
 }
 
-public class FormRequest
+public class DBManager : MonoBehaviour
 {
-    private readonly string url;
-    private readonly string method;
-    public WWWForm Form { get; set; }
-    public string Age { get; set; }
+  //public new string name;
+  // public string password;
+  public InputField inputName;
+  public InputField inputPassword;
+  public Text infoText;
+  public bool isLoggedIn = false;
+  public void StartUpdateUser()
+  {
+    StartCoroutine(UpdateUser());
+  }
+  public void StartRegisterUser()
+  {
+    StartCoroutine(RegisterUser());
+  }
+  public void StartLoginUser()
+  {
+    StartCoroutine(Login());
+  }
 
-    public FormRequest(string method, string url)
+  private P? handleRequest<P>(UnityWebRequest request) where P : struct
+  {
+    // Check for and display Request error
+    if (request.error != null)
     {
-        this.url = url;
-        this.method = method;
-
-        
+      displayError("Request", request.error);
+      return null;
     }
+
+    Response<P> response = JsonUtility.FromJson<Response<P>>(request.downloadHandler.text);
+
+    // Check for and display Response error
+    if (response.error != null)
+    {
+      displayError("Response", response.error);
+      return null;
+    }
+
+    // Hide previous error if this request was successful
+    hideInfo();
+
+    return response.payload;
+  }
+
+  private void displayInfo(string message)
+  {
+    infoText.color = Color.green;
+    infoText.text = message;
+
+    // Do a timeout and then
+    // hideInfo()
+  }
+
+  private void displayError(string type, string message)
+  {
+    infoText.color = Color.red;
+    infoText.text = type + "Error: " + message;
+  }
+
+  private void hideInfo()
+  {
+    infoText.text = null;
+    infoText.color = Color.black;
+  }
+
+
+  private IEnumerator RegisterUser()
+  {
+    WWWForm form = new WWWForm();
+    form.AddField("name", inputName.text);
+    form.AddField("password", inputPassword.text);
+
+    using UnityWebRequest request = UnityWebRequest.Post(API.postRegister, form);
+    yield return request.SendWebRequest();
+
+    UserPayload? payload = handleRequest<UserPayload>(request);
+
+    if (payload?.user != null)
+    {
+      displayInfo("You signed up!");
+    }
+  }
+  private IEnumerator Login()
+  {
+    WWWForm form = new WWWForm();
+    form.AddField("name", inputName.text);
+    form.AddField("password", inputPassword.text);
+
+    using UnityWebRequest request = UnityWebRequest.Post(API.postLogin, form);
+    yield return request.SendWebRequest();
+
+    UserPayload? payload = handleRequest<UserPayload>(request);
+
+    if (payload?.user != null)
+    {
+      displayInfo("You logged in!");
+
+      // Dispatch user ...
+    }
+  }
+
+  private IEnumerator UpdateUser()
+  {
+    WWWForm form = new WWWForm();
+    form.AddField("name", inputName.text);
+    form.AddField("password", inputPassword.text);
+
+    using UnityWebRequest request = UnityWebRequest.Post(API.postUpdate, form);
+    yield return request.SendWebRequest();
+
+    EmptyPayload? payload = handleRequest<EmptyPayload>(request);
+
+    if (payload != null)
+    {
+      displayInfo("You update your data!");
+    }
+  }
 }
