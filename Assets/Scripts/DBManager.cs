@@ -9,7 +9,7 @@ using UnityEngine.Networking;
 using System.Threading.Tasks;
 
 
-public class DBManager : MonoBehaviour
+public class DBManager 
 {
     //public new string name;
    // public string password;
@@ -68,11 +68,11 @@ public class DBManager : MonoBehaviour
         
 
     }
-    
-    public IEnumerable<UnityWebRequest> WebRequestPOST(string path, WWWForm form)
+
+    public UnityWebRequest WebRequestPOST(string path, WWWForm form)
     {
         using UnityWebRequest request = UnityWebRequest.Post(path, form);
-        yield return (UnityWebRequest)request.SendWebRequest();
+        request.SendWebRequest();
 
         logInText.text = null;
         if (request.error != null)
@@ -80,10 +80,10 @@ public class DBManager : MonoBehaviour
             logInText.color = Color.red;
             logInText.text = "Ошибка: " + request.error;
 
-            yield break;
+            return;
         }
 
-        yield return request;
+        return request;
     }
 
     private IEnumerator Login()
@@ -93,10 +93,6 @@ public class DBManager : MonoBehaviour
         form.AddField("password", inputPassword.text);
 
         UnityWebRequest request = WebRequestPOST("https://mrvester.games/files/coursework/login.php", form);
-
-        WWWForm form = new WWWForm();
-        form.AddField("name", inputName.text);
-        form.AddField("password", inputPassword.text);
 
         /*WWWForm form = new WWWForm();
         form.AddField("name", inputName.text);
