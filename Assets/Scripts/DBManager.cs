@@ -23,7 +23,7 @@ public record API
     public static string postRegister = host + "register";
     public static string postUpdate = host + "update";
 }
-
+[Serializable]
 public struct Response<P>
 {
 #nullable enable
@@ -32,12 +32,12 @@ public struct Response<P>
 }
 
 public struct EmptyPayload { }
-
+[Serializable]
 public struct UserPayload
 {
     public User user;
 }
-
+[Serializable]
 public struct User
 {
     public int id;
@@ -46,12 +46,15 @@ public struct User
 
 public class DBManager : MonoBehaviour
 {
-    readonly Dictionary<string, string> errorsDictionary = new Dictionary<string, string>()
+
+    readonly Dictionary<string, string> Errors = new Dictionary<string, string>()
     {
         ["IncorrectName"] = "Имя пользователя введено неправильно",
         ["IncorrectPassword"] = "Введён неправильный пароль",
         ["EmptyName"] = "Введите Имя",
-        ["EmptyPassword"] = "Введите Пароль"
+        ["EmptyPassword"] = "Введите Пароль",
+        ["UserExists"] = "Пользователь уже зарегистрирован"
+
     };
     public InputField inputName;
     public InputField inputPassword;
@@ -84,7 +87,7 @@ public class DBManager : MonoBehaviour
         // Check for and display Response error
         if (response.errorCode != null)
         {
-            displayError("Response", errorsDictionary[response.errorCode]);//
+            displayError("Response", Errors[response.errorCode]);//
             return null;
         }
 
@@ -127,10 +130,11 @@ public class DBManager : MonoBehaviour
 
         UserPayload? payload = handleRequest<UserPayload>(request);
 
-        if (payload?.user != null)
+        if (payload?.user == null)
         {
-            displayInfo("You signed up!");
+            yield break;
         }
+        displayInfo("You signed up!");
     }
     private IEnumerator Login()
     {
@@ -143,12 +147,16 @@ public class DBManager : MonoBehaviour
         Debug.Log(request.downloadHandler.text);
         UserPayload? payload = handleRequest<UserPayload>(request);
 
-        if (payload?.user != null)
+        if (payload?.user == null)
         {
-            displayInfo("You logged in!");
-
-            // Dispatch user ...
+            yield break;
         }
+
+        Storage.user = payload?.user;
+        displayInfo("You logged in with user " + Storage.user?.name);
+
+        // Dispatch user ...
+
     }
 
     private IEnumerator UpdateUser()
@@ -162,9 +170,11 @@ public class DBManager : MonoBehaviour
 
         EmptyPayload? payload = handleRequest<EmptyPayload>(request);
 
-        if (payload != null)
+        if (payload == null)
         {
-            displayInfo("You updated your data!");
+            yield break;
         }
+        displayInfo("You updated your data!");
+
     }
 }

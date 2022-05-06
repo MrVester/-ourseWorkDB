@@ -1,18 +1,15 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class Storage : MonoBehaviour
+public static class Storage
 {
-    // Start is called before the first frame update
-    void Start()
+    private static User _user;
+    public static User? user
     {
-        
-    }
+        get { return _user; }
+        set
+        {
+            if (value?.id == null) return;
+            if (value?.name == null) return;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+            _user = (User)value;
+        }
     }
 }
