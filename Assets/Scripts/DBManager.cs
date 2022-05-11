@@ -5,16 +5,43 @@ using UnityEngine.UI;
 using System;
 using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
-
+using TMPro;
 using System.Threading.Tasks;
 
 
 
 public record Inputs
 {
-    public static string name = "name";
+    public static string id = "id";
+    public static string nickname = "nickname";
+    public static string login = "login";
     public static string password = "password";
+    public static string newpassword = "newpassword";
+    public static string soundvalue = "soundvalue";
+    public static string musicvalue = "musicvalue";
+    public static string attack = "attack";
+    public static string activeitem = "activeitem";
+    public static string moveback = "moveback";
+    public static string movefront = "movefront";
+    public static string moveleft = "moveleft";
+    public static string moveright = "moveright";
 
+    //other video and binds values
+
+}
+public record InputFieldTags
+{
+    public static string login = "Login";
+    public static string nickname = "Username";
+    public static string password = "Password";
+    public static string newpassword = "NewPassword";
+    public static string repeatpassword = "RepeatPassword";
+    public static string repeatnewpassword = "RepeatNewPassword";
+
+}
+public record TextTags
+{
+    public static string infotext = "InfoText";
 }
 public record API
 {
@@ -22,6 +49,8 @@ public record API
     public static string postLogin = host + "login";
     public static string postRegister = host + "register";
     public static string postUpdate = host + "update";
+    public static string postSetSettings = host + "setsettings";
+    public static string postGetSettings = host + "getsettings";
 }
 [Serializable]
 public struct Response<P>
@@ -41,25 +70,76 @@ public struct UserPayload
 public struct User
 {
     public int id;
-    public string name;
+    public string nickname;
+    public string login;
 }
+
+[Serializable]
+public struct SettingsPayload
+{
+    public SoundSettings soundsettings;
+    public BindsSettings bindsSettings;
+    public VideoSettings videoSettings;
+}
+[Serializable]
+public struct SoundSettings
+{
+    public float soundvalue;
+    public float musicvalue;
+}
+[Serializable]
+public struct BindsSettings
+{
+    public string attack;
+    public string activeitem;
+    public string moveback;
+    public string movefront;
+    public string moveleft;
+    public string moveright;
+}
+[Serializable]
+public struct VideoSettings
+{
+
+}
+
 
 public class DBManager : MonoBehaviour
 {
+    public string GetIFTextWithTag(string tag)
+    {
+        if (GameObject.FindGameObjectWithTag(tag))
+            return GameObject.FindGameObjectWithTag(tag).GetComponent<TMP_InputField>().text;
+        else
+            return "";
+    }
+    public void SetTextWithTag(string tag, string info)
+    {
+        if (GameObject.FindGameObjectWithTag(tag))
+            GameObject.FindGameObjectWithTag(tag).GetComponent<TMP_Text>().text = info;
 
+    }
+    public P GetComponentWithTag<P>(string tag)
+    {
+        return GameObject.FindGameObjectWithTag(tag).GetComponent<P>();
+    }
     readonly Dictionary<string, string> Errors = new Dictionary<string, string>()
     {
-        ["IncorrectName"] = "Имя пользователя введено неправильно",
-        ["IncorrectPassword"] = "Введён неправильный пароль",
-        ["EmptyName"] = "Введите Имя",
-        ["EmptyPassword"] = "Введите Пароль",
-        ["UserExists"] = "Пользователь уже зарегистрирован"
+        ["IncorrectLogin"] = "Login is not correct",
+        ["IncorrectPassword"] = "Password is not correct",
+        ["EmptyLogin"] = "Enter Login",
+        ["EmptyPassword"] = "Enter Password",
+        ["EmptyNickname"] = "Enter Nickname",
+        ["UserExists"] = "This User already has account",
+        ["NotLoggedIn"] = "Log In, please",
+        ["PasswordsDoNotMatch"] = "Both entered passwords must be identical"
 
     };
-    public InputField inputName;
-    public InputField inputPassword;
-    public Text infoText;
-    public bool isLoggedIn = false;
+    /* public TMP_InputField inputNickname;
+     public TMP_InputField inputLogin;
+     public TMP_InputField inputPassword;
+     public TMP_InputField inputNewPassword;*/
+    //public Text infoText;
     public void StartUpdateUser()
     {
         StartCoroutine(UpdateUser());
@@ -99,8 +179,8 @@ public class DBManager : MonoBehaviour
 
     private void displayInfo(string message)
     {
-        infoText.color = Color.green;
-        infoText.text = message;
+        GetComponentWithTag<TMP_Text>(TextTags.infotext).color = Color.green;
+        GetComponentWithTag<TMP_Text>(TextTags.infotext).text = message;
 
         // Do a timeout and then
         // hideInfo()
@@ -108,22 +188,29 @@ public class DBManager : MonoBehaviour
 
     private void displayError(string type, string message)
     {
-        infoText.color = Color.red;
-        infoText.text = type + "Error: " + message;
+        GetComponentWithTag<TMP_Text>(TextTags.infotext).color = Color.red;
+        GetComponentWithTag<TMP_Text>(TextTags.infotext).text = type + "Error: " + message;
     }
 
     private void hideInfo()
     {
-        infoText.text = null;
-        infoText.color = Color.black;
+        GetComponentWithTag<TMP_Text>(TextTags.infotext).text = null;
+        GetComponentWithTag<TMP_Text>(TextTags.infotext).color = Color.black;
     }
 
 
     private IEnumerator RegisterUser()
     {
         WWWForm form = new WWWForm();
-        form.AddField(Inputs.name, inputName.text);
-        form.AddField(Inputs.password, inputPassword.text);
+        form.AddField(Inputs.nickname, GetIFTextWithTag(InputFieldTags.nickname));
+        form.AddField(Inputs.login, GetIFTextWithTag(InputFieldTags.login));
+        if (GetIFTextWithTag(InputFieldTags.password) != GetIFTextWithTag(InputFieldTags.repeatpassword))
+        {
+            displayError("Request", Errors["PasswordsDoNotMatch"]);
+            yield break;
+        }
+        form.AddField(Inputs.password, GetIFTextWithTag(InputFieldTags.password));
+
 
         using UnityWebRequest request = UnityWebRequest.Post(API.postRegister, form);
         yield return request.SendWebRequest();
@@ -134,47 +221,68 @@ public class DBManager : MonoBehaviour
         {
             yield break;
         }
+        Storage.user = payload?.user;
         displayInfo("You signed up!");
     }
     private IEnumerator Login()
     {
         WWWForm form = new WWWForm();
-        form.AddField(Inputs.name, inputName.text);
-        form.AddField(Inputs.password, inputPassword.text);
+        form.AddField(Inputs.login, GetIFTextWithTag(InputFieldTags.login));
+        form.AddField(Inputs.password, GetIFTextWithTag(InputFieldTags.password));
 
         using UnityWebRequest request = UnityWebRequest.Post(API.postLogin, form);
         yield return request.SendWebRequest();
-        Debug.Log(request.downloadHandler.text);
+        //Debug.Log(request.downloadHandler.text);
         UserPayload? payload = handleRequest<UserPayload>(request);
 
         if (payload?.user == null)
         {
             yield break;
         }
-
         Storage.user = payload?.user;
-        displayInfo("You logged in with user " + Storage.user?.name);
 
-        // Dispatch user ...
-
+        displayInfo("You logged in with user " + Storage.user?.nickname);
     }
 
     private IEnumerator UpdateUser()
     {
         WWWForm form = new WWWForm();
-        form.AddField(Inputs.name, inputName.text);
-        form.AddField(Inputs.password, inputPassword.text);
+        Debug.Log(Storage.user?.login);
+        form.AddField(Inputs.login, Storage.user?.login);
+        form.AddField(Inputs.password, GetIFTextWithTag(InputFieldTags.password));
+
+        if (GetIFTextWithTag(InputFieldTags.newpassword) != GetIFTextWithTag(InputFieldTags.repeatnewpassword))
+        {
+            displayError("Request", Errors["PasswordsDoNotMatch"]);
+            yield break;
+        }
+        form.AddField(Inputs.newpassword, GetIFTextWithTag(InputFieldTags.newpassword));
 
         using UnityWebRequest request = UnityWebRequest.Post(API.postUpdate, form);
         yield return request.SendWebRequest();
 
-        EmptyPayload? payload = handleRequest<EmptyPayload>(request);
+        UserPayload? payload = handleRequest<UserPayload>(request);
 
-        if (payload == null)
+        if (payload?.user == null)
         {
             yield break;
         }
         displayInfo("You updated your data!");
 
+    }
+    private IEnumerator SetSettings()
+    {
+        WWWForm form = new WWWForm();
+        form.AddField(Inputs.login, Storage.user?.login);
+        form.AddField(Inputs.soundvalue, /*Enter soundvalue*/"Ввести значение");
+        form.AddField(Inputs.musicvalue, /*Enter musicvalue*/"Ввести значение");
+        //other video and binds values
+
+        using UnityWebRequest request = UnityWebRequest.Post(API.postSetSettings, form);
+        yield return request.SendWebRequest();
+
+        SettingsPayload? payload = handleRequest<SettingsPayload>(request);
+
+        //Some stuff with settings
     }
 }
