@@ -1,9 +1,12 @@
 public static class Storage
 {
     private static User _user;
-    private static SoundSettings _soundSettings;
-    private static BindsSettings _bindsSettings;
-    private static VideoSettings _videoSettings;
+    private static AudioSettings _audiosettings;
+    private static ControlSettings _controlsettings;
+    private static VideoSettings _videosettings;
+    private static Settings _settings;
+
+
     public static User? user
     {
         get { return _user; }
@@ -18,9 +21,22 @@ public static class Storage
         }
     }
 
-    public static SoundSettings? soundSettings
+    public static Settings? settings
     {
-        get { return _soundSettings; }
+        get { return _settings; }
+        set
+        {
+            if (value?.audiosettings == null) return;
+            if (value?.controlsettings == null) return;
+            if (value?.videosettings == null) return;
+
+            _settings = (Settings)value;
+        }
+    }
+
+    /*public static AudioSettings? audiosettings
+    {
+        get { return _audiosettings; }
         set
         {
             if (value?.soundvalue == null) return;
@@ -28,13 +44,13 @@ public static class Storage
 
 
 
-            _soundSettings = (SoundSettings)value;
+            _audiosettings = (AudioSettings)value;
         }
     }
 
-    public static BindsSettings? bindsSettings
+    public static ControlSettings? controlsettings
     {
-        get { return _bindsSettings; }
+        get { return _controlsettings; }
         set
         {
             if (value?.attack == null) return;
@@ -46,13 +62,13 @@ public static class Storage
 
 
 
-            _bindsSettings = (BindsSettings)value;
+            _controlsettings = (ControlSettings)value;
         }
     }
 
-    public static VideoSettings? videoSettings
+    public static VideoSettings? videosettings
     {
-        get { return _videoSettings; }
+        get { return _videosettings; }
         set
         {
             //if (value?. == null) return;
@@ -60,8 +76,8 @@ public static class Storage
 
 
 
-            _videoSettings = (VideoSettings)value;
+            _videosettings = (VideoSettings)value;
         }
-    }
+    }*/
 }
 

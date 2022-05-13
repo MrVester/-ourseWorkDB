@@ -25,6 +25,10 @@ public record Inputs
     public static string movefront = "movefront";
     public static string moveleft = "moveleft";
     public static string moveright = "moveright";
+    public static string screenmode = "screenmode";
+    public static string resolution = "resolution";
+    public static string quality = "quality";
+    public static string framerate = "framerate";
 
     //other video and binds values
 
@@ -51,6 +55,7 @@ public record API
     public static string postUpdate = host + "update";
     public static string postSetSettings = host + "setsettings";
     public static string postGetSettings = host + "getsettings";
+    public static string postSetDefaultSettings = host + "setdefaultsettings";
 }
 [Serializable]
 public struct Response<P>
@@ -77,18 +82,23 @@ public struct User
 [Serializable]
 public struct SettingsPayload
 {
-    public SoundSettings soundsettings;
-    public BindsSettings bindsSettings;
-    public VideoSettings videoSettings;
+    public Settings settings;
 }
 [Serializable]
-public struct SoundSettings
+public struct Settings
+{
+    public AudioSettings audiosettings;
+    public ControlSettings controlsettings;
+    public VideoSettings videosettings;
+}
+[Serializable]
+public struct AudioSettings
 {
     public float soundvalue;
     public float musicvalue;
 }
 [Serializable]
-public struct BindsSettings
+public struct ControlSettings
 {
     public string attack;
     public string activeitem;
@@ -100,7 +110,10 @@ public struct BindsSettings
 [Serializable]
 public struct VideoSettings
 {
-
+    public string screenmode;
+    public string resolution;
+    public string quality;
+    public string framerate;
 }
 
 
@@ -125,6 +138,7 @@ public class DBManager : MonoBehaviour
     }
     readonly Dictionary<string, string> Errors = new Dictionary<string, string>()
     {
+        ["RouteNotFound"] = "ѕуть к методу не найден",
         ["IncorrectLogin"] = "Login is not correct",
         ["IncorrectPassword"] = "Password is not correct",
         ["EmptyLogin"] = "Enter Login",
@@ -135,11 +149,6 @@ public class DBManager : MonoBehaviour
         ["PasswordsDoNotMatch"] = "Both entered passwords must be identical"
 
     };
-    /* public TMP_InputField inputNickname;
-     public TMP_InputField inputLogin;
-     public TMP_InputField inputPassword;
-     public TMP_InputField inputNewPassword;*/
-    //public Text infoText;
     public void StartUpdateUser()
     {
         StartCoroutine(UpdateUser());
@@ -147,10 +156,19 @@ public class DBManager : MonoBehaviour
     public void StartRegisterUser()
     {
         StartCoroutine(RegisterUser());
+        StartCoroutine(SetDefaultSettings());
     }
     public void StartLoginUser()
     {
         StartCoroutine(Login());
+    }
+    public void StartGetSettings()
+    {
+        StartCoroutine(GetSettings());
+    }
+    public void StartSetSettings()
+    {
+        StartCoroutine(SetSettings());
     }
 
     private P? handleRequest<P>(UnityWebRequest request) where P : struct
@@ -243,7 +261,6 @@ public class DBManager : MonoBehaviour
 
         displayInfo("You logged in with user " + Storage.user?.nickname);
     }
-
     private IEnumerator UpdateUser()
     {
         WWWForm form = new WWWForm();
@@ -270,19 +287,73 @@ public class DBManager : MonoBehaviour
         displayInfo("You updated your data!");
 
     }
+
     private IEnumerator SetSettings()
     {
         WWWForm form = new WWWForm();
         form.AddField(Inputs.login, Storage.user?.login);
-        form.AddField(Inputs.soundvalue, /*Enter soundvalue*/"¬вести значение");
-        form.AddField(Inputs.musicvalue, /*Enter musicvalue*/"¬вести значение");
+
+        form.AddField(Inputs.soundvalue, /*Enter soundvalue*/"13");
+        form.AddField(Inputs.musicvalue, /*Enter musicvalue*/"13");
+
+        form.AddField(Inputs.attack, /*Enter value*/"¬вести значение");
+        form.AddField(Inputs.activeitem, /*Enter value*/"¬вести значение");
+        form.AddField(Inputs.moveback, /*Enter value*/"¬вести значение");
+        form.AddField(Inputs.movefront, /*Enter value*/"¬вести значение");
+        form.AddField(Inputs.moveleft, /*Enter value*/"¬вести значение");
+        form.AddField(Inputs.moveright, /*Enter value*/"¬вести значение");
+
+        form.AddField(Inputs.screenmode, /*Enter value*/"3");
+        form.AddField(Inputs.resolution, /*Enter value*/"3");
+        form.AddField(Inputs.quality, /*Enter value*/"3");
+        form.AddField(Inputs.framerate, /*Enter value*/"3");
+
         //other video and binds values
 
         using UnityWebRequest request = UnityWebRequest.Post(API.postSetSettings, form);
         yield return request.SendWebRequest();
 
+        UserPayload? payload = handleRequest<UserPayload>(request);
+
+        if (payload?.user == null)
+        {
+            yield break;
+        }
+        displayInfo("You updated your settings!");
+    }
+    private IEnumerator GetSettings()
+    {
+        WWWForm form = new WWWForm();
+        form.AddField(Inputs.login, Storage.user?.login);
+
+        using UnityWebRequest request = UnityWebRequest.Post(API.postGetSettings, form);
+        yield return request.SendWebRequest();
+
         SettingsPayload? payload = handleRequest<SettingsPayload>(request);
 
-        //Some stuff with settings
+        if (payload?.settings == null)
+        {
+            yield break;
+        }
+        //Debug.Log(payload?.settings.audiosettings.musicvalue);
+        Storage.settings = payload?.settings;
+        Debug.Log(Storage.settings?.audiosettings.musicvalue);
+        displayInfo("ѕолучена настройка " + payload?.settings.audiosettings + " с значением: " + payload?.settings.audiosettings.musicvalue);
+    }
+    private IEnumerator SetDefaultSettings()
+    {
+        WWWForm form = new WWWForm();
+        form.AddField(Inputs.login, Storage.user?.login);
+
+        using UnityWebRequest request = UnityWebRequest.Post(API.postSetDefaultSettings, form);
+        yield return request.SendWebRequest();
+
+        UserPayload? payload = handleRequest<UserPayload>(request);
+
+        if (payload?.user == null)
+        {
+            yield break;
+        }
+        displayInfo("Default Settings Set");
     }
 }
