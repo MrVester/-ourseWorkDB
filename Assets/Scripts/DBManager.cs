@@ -29,6 +29,9 @@ public record Inputs
     public static string resolution = "resolution";
     public static string quality = "quality";
     public static string framerate = "framerate";
+    public static string difficulty = "difficultyvalue";
+    public static string character = "charactername";
+    public static string item = "itemname";
 
     //other video and binds values
 
@@ -56,6 +59,11 @@ public record API
     public static string postSetSettings = host + "setsettings";
     public static string postGetSettings = host + "getsettings";
     public static string postSetDefaultSettings = host + "setdefaultsettings";
+    public static string postGetDifficultyParams = host + "getdifficultyparams";
+    public static string postGetCharacterParams = host + "getcharacterparams";
+    public static string postGetActiveItemParams = host + "getactiveitemparams";
+    public static string postGetPassiveItemParams = host + "getpassiveitemparams";
+    public static string postClearItemsbyLogin = host + "clearitems";
 }
 [Serializable]
 public struct Response<P>
@@ -65,7 +73,6 @@ public struct Response<P>
     public P payload;
 }
 
-public struct EmptyPayload { }
 [Serializable]
 public struct UserPayload
 {
@@ -74,7 +81,7 @@ public struct UserPayload
 [Serializable]
 public struct User
 {
-    
+
     public string nickname;
     public string login;
 }
@@ -116,6 +123,58 @@ public struct VideoSettings
     public string framerate;
 }
 
+[Serializable]
+public struct CharacterPayload
+{
+    public Character character;
+}
+[Serializable]
+public struct Character
+{
+    public float hp;
+    public float damage;
+    public float speed;
+    public float armor;
+}
+
+[Serializable]
+public struct DifficultyPayload
+{
+    public Difficulty difficulty;
+}
+[Serializable]
+public struct Difficulty
+{
+    public float mobshpmult;
+    public float mobsdamagemult;
+}
+
+[Serializable]
+public struct ActiveItemPayload
+{
+    public ActiveItem activeitem;
+}
+[Serializable]
+public struct ActiveItem
+{
+    public float damage;
+    public float hp;
+}
+
+[Serializable]
+public struct PassiveItemPayload
+{
+    public PassiveItem passiveitem;
+}
+[Serializable]
+public struct PassiveItem
+{
+    public float damage;
+    public float hpboost;
+    public float hp;
+    public float speed;
+    public float armor;
+}
 
 public class DBManager : MonoBehaviour
 {
@@ -147,7 +206,10 @@ public class DBManager : MonoBehaviour
         ["EmptyNickname"] = "Enter Nickname",
         ["UserExists"] = "This User already has account",
         ["NotLoggedIn"] = "Log In, please",
-        ["PasswordsDoNotMatch"] = "Both entered passwords must be identical"
+        ["PasswordsDoNotMatch"] = "Both entered passwords must be identical",
+        ["DifficultyNotFound"] = "There is no such difficulty in DataBase",
+        ["CharacterNotFound"] = "There is no such character in DataBase",
+        ["ItemNotFound"] = "There is no such item in DataBase",
 
     };
     public void StartUpdateUser()
@@ -169,6 +231,26 @@ public class DBManager : MonoBehaviour
     public void StartSetSettings()
     {
         StartCoroutine(SetSettings());
+    }
+    public void StartGetDifficulty()
+    {
+        StartCoroutine(GetDifficulty());
+    }
+    public void StartGetCharacter()
+    {
+        StartCoroutine(GetCharacter());
+    }
+    public void StartGetnSetActiveItem()
+    {
+        StartCoroutine(GetnSetActiveItem());
+    }
+    public void StartGetnSetPassiveItem()
+    {
+        StartCoroutine(GetnSetPassiveItem());
+    }
+    public void StartClearItems()
+    {
+        StartCoroutine(ClearItems());
     }
 
     private P? handleRequest<P>(UnityWebRequest request) where P : struct
@@ -260,7 +342,7 @@ public class DBManager : MonoBehaviour
             yield break;
         }
         Storage.user = payload?.user;
-        
+
         controller.SetMainMenu();
     }
     private IEnumerator UpdateUser()
@@ -357,5 +439,93 @@ public class DBManager : MonoBehaviour
             yield break;
         }
         displayInfo("Default Settings Set");
+    }
+
+    private IEnumerator GetDifficulty()
+    {
+        WWWForm form = new WWWForm();
+        form.AddField(Inputs.difficulty, "1");
+
+        using UnityWebRequest request = UnityWebRequest.Post(API.postGetDifficultyParams, form);
+        yield return request.SendWebRequest();
+        //Debug.Log(request.downloadHandler.text);
+        DifficultyPayload? payload = handleRequest<DifficultyPayload>(request);
+
+
+        if (payload?.difficulty == null)
+        {
+            yield break;
+        }
+        Debug.Log(payload?.difficulty.mobshpmult + "  " + payload?.difficulty.mobsdamagemult);
+    }
+    private IEnumerator GetCharacter()
+    {
+        WWWForm form = new WWWForm();
+        form.AddField(Inputs.character, "assassin");
+
+        using UnityWebRequest request = UnityWebRequest.Post(API.postGetCharacterParams, form);
+        yield return request.SendWebRequest();
+        //Debug.Log(request.downloadHandler.text);
+        CharacterPayload? payload = handleRequest<CharacterPayload>(request);
+
+
+        if (payload?.character == null)
+        {
+            yield break;
+        }
+        Debug.Log(payload?.character.hp + "  " + payload?.character.damage + "  " + payload?.character.speed + "  " + payload?.character.armor);
+    }
+    private IEnumerator GetnSetActiveItem()
+    {
+        WWWForm form = new WWWForm();
+        form.AddField(Inputs.login, Storage.user?.login);
+        form.AddField(Inputs.item, "bandage");
+
+        using UnityWebRequest request = UnityWebRequest.Post(API.postGetActiveItemParams, form);
+        yield return request.SendWebRequest();
+        //Debug.Log(request.downloadHandler.text);
+        ActiveItemPayload? payload = handleRequest<ActiveItemPayload>(request);
+
+
+        if (payload?.activeitem == null)
+        {
+            yield break;
+        }
+        Debug.Log(payload?.activeitem.hp + "  " + payload?.activeitem.damage);
+    }
+
+    private IEnumerator GetnSetPassiveItem()
+    {
+        WWWForm form = new WWWForm();
+        form.AddField(Inputs.login, Storage.user?.login);
+        form.AddField(Inputs.item, "apple");
+
+        using UnityWebRequest request = UnityWebRequest.Post(API.postGetPassiveItemParams, form);
+        yield return request.SendWebRequest();
+        Debug.Log(request.downloadHandler.text);
+        PassiveItemPayload? payload = handleRequest<PassiveItemPayload>(request);
+
+
+        if (payload?.passiveitem == null)
+        {
+            yield break;
+        }
+        Debug.Log(payload?.passiveitem.hp + "  " + payload?.passiveitem.hpboost + "  " + payload?.passiveitem.damage + "  " + payload?.passiveitem.speed + "  " + payload?.passiveitem.armor);
+    }
+
+    private IEnumerator ClearItems()
+    {
+        WWWForm form = new WWWForm();
+        form.AddField(Inputs.login, Storage.user?.login);
+
+        using UnityWebRequest request = UnityWebRequest.Post(API.postClearItemsbyLogin, form);
+        yield return request.SendWebRequest();
+        UserPayload? payload = handleRequest<UserPayload>(request);
+
+
+        if (payload?.user == null)
+        {
+            yield break;
+        }
     }
 }
