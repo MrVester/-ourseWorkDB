@@ -12,10 +12,6 @@ public static class Storage
         get { return _user; }
         set
         {
-            if (value?.nickname == null) return;
-            if (value?.login == null) return;
-
-
             _user = (User)value;
         }
     }

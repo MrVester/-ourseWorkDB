@@ -65,6 +65,7 @@ public struct Response<P>
     public P payload;
 }
 
+public struct EmptyPayload { }
 [Serializable]
 public struct UserPayload
 {
@@ -73,6 +74,7 @@ public struct UserPayload
 [Serializable]
 public struct User
 {
+    
     public string nickname;
     public string login;
 }
@@ -89,7 +91,6 @@ public struct Settings
     public ControlSettings controlsettings;
     public VideoSettings videosettings;
 }
-
 [Serializable]
 public struct AudioSettings
 {
@@ -115,50 +116,10 @@ public struct VideoSettings
     public string framerate;
 }
 
-[Serializable]
-public struct CharacterPayload
-{
-    public Character user;
-}
-[Serializable]
-public struct Character
-{
-    public float hp;
-    public float damage;
-    public float speed;
-    public float armor;
-}
-
-[Serializable]
-public struct ActiveItemPayload
-{
-    public ActiveItem user;
-}
-[Serializable]
-public struct ActiveItem
-{
-    public float damage;
-    public float hp;
-}
-
-[Serializable]
-public struct PassiveItemPayload
-{
-    public PassiveItem user;
-}
-[Serializable]
-public struct PassiveItem
-{
-    public float damage;
-    public float hpboost;
-    public float hp;
-    public float speed;
-    public float armor;
-}
-
 
 public class DBManager : MonoBehaviour
 {
+    public UIMenuController controller;
     public string GetIFTextWithTag(string tag)
     {
         if (GameObject.FindGameObjectWithTag(tag))
@@ -196,7 +157,6 @@ public class DBManager : MonoBehaviour
     public void StartRegisterUser()
     {
         StartCoroutine(RegisterUser());
-
     }
     public void StartLoginUser()
     {
@@ -281,7 +241,8 @@ public class DBManager : MonoBehaviour
         }
         Storage.user = payload?.user;
         StartCoroutine(SetDefaultSettings());
-        displayInfo("You signed up!");
+
+        controller.SetMainMenu();
     }
     private IEnumerator Login()
     {
@@ -299,8 +260,8 @@ public class DBManager : MonoBehaviour
             yield break;
         }
         Storage.user = payload?.user;
-
-        displayInfo("You logged in with user " + Storage.user?.nickname);
+        
+        controller.SetMainMenu();
     }
     private IEnumerator UpdateUser()
     {
