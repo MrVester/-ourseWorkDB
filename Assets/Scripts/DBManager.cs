@@ -422,7 +422,7 @@ public class DBManager : MonoBehaviour
         //Debug.Log(payload?.settings.audiosettings.musicvalue);
         Storage.settings = payload?.settings;
         Debug.Log(Storage.settings?.audiosettings.musicvalue);
-        displayInfo("Получена настройка " + payload?.settings.audiosettings + " с значением: " + payload?.settings.audiosettings.musicvalue);
+        displayInfo("Получена настройка " + Storage.settings?.controlsettings + " с значением: " + Storage.settings?.controlsettings.attack);
     }
     private IEnumerator SetDefaultSettings()
     {

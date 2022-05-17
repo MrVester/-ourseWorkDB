@@ -29,50 +29,5 @@ public static class Storage
         }
     }
 
-    /*public static AudioSettings? audiosettings
-    {
-        get { return _audiosettings; }
-        set
-        {
-            if (value?.soundvalue == null) return;
-            if (value?.musicvalue == null) return;
-
-
-
-            _audiosettings = (AudioSettings)value;
-        }
-    }
-
-    public static ControlSettings? controlsettings
-    {
-        get { return _controlsettings; }
-        set
-        {
-            if (value?.attack == null) return;
-            if (value?.activeitem == null) return;
-            if (value?.movefront == null) return;
-            if (value?.moveback == null) return;
-            if (value?.moveleft == null) return;
-            if (value?.moveright == null) return;
-
-
-
-            _controlsettings = (ControlSettings)value;
-        }
-    }
-
-    public static VideoSettings? videosettings
-    {
-        get { return _videosettings; }
-        set
-        {
-            //if (value?. == null) return;
-            // if (value?. == null) return;
-
-
-
-            _videosettings = (VideoSettings)value;
-        }
-    }*/
 }
 
