@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-public class VideoSettings1 : MonoBehaviour
+public class SetVideoSettings : MonoBehaviour
 {
     [SerializeField]
     private TMP_Dropdown resolutionDropdown;
@@ -17,7 +17,7 @@ public class VideoSettings1 : MonoBehaviour
     [SerializeField]
     private TMP_Dropdown FramerateDropdown;
 
-    public int _Screenmoded;
+    public int _Screenmode;
 
     public int _Quality;
     
@@ -27,15 +27,15 @@ public class VideoSettings1 : MonoBehaviour
 
     Resolution resolution;
 
-    
-
-
+    DBManager dbmanager;
+    [SerializeField]
+    private GameObject VideoSettingsMenu;
     private const string saveKey = "VideoSettings";
     public void Start()
     {
 
-
-        Load();
+        dbmanager = GetComponent<DBManager>();
+      
     }
 
     public void SetQuality (int qualityIndex)
@@ -60,8 +60,8 @@ public class VideoSettings1 : MonoBehaviour
                 break;
 
         }
-        _Screenmoded = ScreenMode;
-        ScreenmodedDropdown.value = _Screenmoded;
+        _Screenmode = ScreenMode;
+        ScreenmodedDropdown.value = _Screenmode;
         Save();
 
 
@@ -132,39 +132,53 @@ public class VideoSettings1 : MonoBehaviour
         FramerateDropdown.value = _Framerate;
         Save();
     }
+    public void SetupVideoSettings()
+    {
+        Debug.Log(Storage.controlsettings?.attack);
+        //Load();
+    }
 
-
-    private void Load()
+    public void Load( int? _Screenmode, int? _Resolution, int? _Quality,int? _Framerate)
     {
         var data = SaveManager.Load<SaveData.SavePropertis.VideoSettings>(saveKey);
-
-        _Resolution = data.ScreenResolution;
-        SetResolution(_Resolution);
-        _Screenmoded = data.ScreenModed;
-        ScreenMode(_Screenmoded);
-        _Quality = data.Quality;
-        SetQuality(_Quality);
-        _Framerate = data.Framerate;
-        SetFramerate(_Framerate);
-
+        
+       
+        SetResolution((int)(_Resolution));
+       
+        
+        ScreenMode((int)(_Screenmode));
+        
+        SetQuality((int)(_Quality));
+        
+        SetFramerate((int)(_Framerate));
+       
 
     }
     public void ResetSettings()
     {
         var data = SaveManager.Load<SaveData.SavePropertis.VideoSettings>("Reset");
 
+        _Screenmode = data.ScreenModed;
+        ScreenMode(_Screenmode);
         _Resolution = data.ScreenResolution;
         SetResolution(_Resolution);
-        _Screenmoded = data.ScreenModed;
-        ScreenMode(_Screenmoded);
         _Quality = data.Quality;
         SetQuality(_Quality);
         _Framerate = data.Framerate;
         SetFramerate(_Framerate);
+
+        Storage.videosettings = new VideoSettings(data.ScreenModed, data.ScreenResolution,data.Quality, data.Framerate);
+        dbmanager.StartSetSettings();
     }
     private void Save()
     {
-        SaveManager.Save(saveKey, GetSaveSnapshots());
+        if(VideoSettingsMenu.activeSelf)
+        {
+            SaveManager.Save(saveKey, GetSaveSnapshots());
+            Storage.videosettings = new VideoSettings(_Screenmode,_Resolution , _Quality, _Framerate);
+            dbmanager.StartSetSettings();
+        }
+ 
     }
 
     private SaveData.SavePropertis.VideoSettings GetSaveSnapshots()
@@ -172,7 +186,7 @@ public class VideoSettings1 : MonoBehaviour
         var data = new SaveData.SavePropertis.VideoSettings()
         {
             ScreenResolution = _Resolution,
-            ScreenModed = _Screenmoded,
+            ScreenModed = _Screenmode,
             Quality = _Quality,
             Framerate = _Framerate
         };

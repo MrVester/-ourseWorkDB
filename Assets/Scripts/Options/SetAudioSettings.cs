@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Audio;
 
-public class AudioSettings1 : MonoBehaviour
+public class SetAudioSettings : MonoBehaviour
 {
     private const string saveKey = "AudioSettings";
     [SerializeField]
@@ -19,13 +19,15 @@ public class AudioSettings1 : MonoBehaviour
     public AudioMixer Sound;
 
     public AudioMixer Music;
-
+    DBManager dbmanager;
+    [SerializeField]
+    private GameObject AudioSettingsMenu;
 
     public void Start()
     {
 
-
-        Load();
+        dbmanager=GetComponent<DBManager>();
+    
     }
 
     public void SetMusic(float value)
@@ -33,8 +35,8 @@ public class AudioSettings1 : MonoBehaviour
         Music.SetFloat("Music", value);
         _MusicVolume = value;
         MusicSlider.value = _MusicVolume;
-        Save();
 
+        Save();
 
     }
     public void SetSound(float value)
@@ -42,19 +44,20 @@ public class AudioSettings1 : MonoBehaviour
         Sound.SetFloat("Sound", value);
         _SoundVolume = value;
         SoundSlider.value = _SoundVolume;
+
         Save();
     }
 
 
-    private void Load()
+    public void Load(float? _SoundVolume, float? _MusicVolume)
     {
         var data = SaveManager.Load<SaveData.SavePropertis.AudioSettings>(saveKey);
 
-        _MusicVolume = data.MusicVolume;
-        SetMusic(_MusicVolume);
+        
+        SetMusic((float)_MusicVolume);
 
-        _SoundVolume = data.SoundVolume;
-        SetSound(_SoundVolume);
+        
+        SetSound((float)_SoundVolume);
 
 
     }
@@ -67,10 +70,18 @@ public class AudioSettings1 : MonoBehaviour
         _SoundVolume = data.SoundVolume;
         SetSound(_SoundVolume);
 
+        Storage.audiosettings = new AudioSettings(data.MusicVolume, data.MusicVolume);
+        dbmanager.StartSetSettings();
     }
-    private void Save()
+    public void Save()
     {
-        SaveManager.Save(saveKey, GetSaveSnapshots());
+        if (AudioSettingsMenu.activeSelf)
+        {
+            SaveManager.Save(saveKey, GetSaveSnapshots());
+            Storage.audiosettings = new AudioSettings(_SoundVolume, _MusicVolume );
+            dbmanager.StartSetSettings();
+        }
+        
     }
 
     private SaveData.SavePropertis.AudioSettings GetSaveSnapshots()

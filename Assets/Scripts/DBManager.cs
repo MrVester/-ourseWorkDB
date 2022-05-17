@@ -81,9 +81,13 @@ public struct UserPayload
 [Serializable]
 public struct User
 {
-
-    public string nickname;
-    public string login;
+    public User(float prikol)
+    {
+        nickname = null;
+        login = null;
+    }
+    public string? nickname;
+    public string? login;
 }
 
 [Serializable]
@@ -101,26 +105,47 @@ public struct Settings
 [Serializable]
 public struct AudioSettings
 {
+    public AudioSettings(float soundvalue, float musicvalue)
+    {
+        this.soundvalue = soundvalue;
+        this.musicvalue = musicvalue;
+    }
     public float soundvalue;
     public float musicvalue;
 }
 [Serializable]
 public struct ControlSettings
 {
+    public ControlSettings(string attack, string activeitem,string movefront, string moveleft, string moveback, string moveright)
+    {
+        this.attack = attack;
+        this.activeitem = activeitem;
+        this.movefront = movefront;
+        this.moveleft = moveleft;
+        this.moveback = moveback;
+        this.moveright = moveright;
+    }
     public string attack;
     public string activeitem;
-    public string moveback;
     public string movefront;
     public string moveleft;
+    public string moveback;
     public string moveright;
 }
 [Serializable]
 public struct VideoSettings
 {
-    public string screenmode;
-    public string resolution;
-    public string quality;
-    public string framerate;
+    public VideoSettings(int screenmode, int resolution, int quality, int framerate)
+    {
+        this.screenmode = screenmode;
+        this.resolution = resolution;
+        this.quality = quality;
+        this.framerate = framerate;
+    }
+    public int screenmode;
+    public int resolution;
+    public int quality;
+    public int framerate;
 }
 
 [Serializable]
@@ -179,6 +204,10 @@ public struct PassiveItem
 public class DBManager : MonoBehaviour
 {
     public UIMenuController controller;
+
+    public SetVideoSettings setVideoSetttings;
+
+    public SetAudioSettings setAudioSetttings;
     public string GetIFTextWithTag(string tag)
     {
         if (GameObject.FindGameObjectWithTag(tag))
@@ -194,7 +223,12 @@ public class DBManager : MonoBehaviour
     }
     public P GetComponentWithTag<P>(string tag)
     {
+        /*if(!GameObject.FindGameObjectWithTag(tag))
+        {
+            return default(P);
+        }*/
         return GameObject.FindGameObjectWithTag(tag).GetComponent<P>();
+        
     }
     readonly Dictionary<string, string> Errors = new Dictionary<string, string>()
     {
@@ -252,7 +286,10 @@ public class DBManager : MonoBehaviour
     {
         StartCoroutine(ClearItems());
     }
-
+    public void ClearLocalUser()
+    {
+        ClearUser();
+    }
     private P? handleRequest<P>(UnityWebRequest request) where P : struct
     {
         // Check for and display Request error
@@ -319,15 +356,20 @@ public class DBManager : MonoBehaviour
 
         if (payload?.user == null)
         {
+
             yield break;
         }
         Storage.user = payload?.user;
         StartCoroutine(SetDefaultSettings());
-
+        
+        StartCoroutine(GetSettings());
+       
         controller.SetMainMenu();
+       
     }
     private IEnumerator Login()
     {
+        Debug.Log(Storage.user?.login);
         WWWForm form = new WWWForm();
         form.AddField(Inputs.login, GetIFTextWithTag(InputFieldTags.login));
         form.AddField(Inputs.password, GetIFTextWithTag(InputFieldTags.password));
@@ -343,7 +385,13 @@ public class DBManager : MonoBehaviour
         }
         Storage.user = payload?.user;
 
+        Debug.Log(Storage.user?.login);
+
+        StartCoroutine(GetSettings());
+        
+       
         controller.SetMainMenu();
+       
     }
     private IEnumerator UpdateUser()
     {
@@ -375,24 +423,25 @@ public class DBManager : MonoBehaviour
     private IEnumerator SetSettings()
     {
         WWWForm form = new WWWForm();
+        Debug.Log(Storage.user?.login);
         form.AddField(Inputs.login, Storage.user?.login);
 
-        form.AddField(Inputs.soundvalue, /*Enter soundvalue*/"13");
-        form.AddField(Inputs.musicvalue, /*Enter musicvalue*/"13");
+        form.AddField(Inputs.soundvalue, Storage.settings?.audiosettings.soundvalue.ToString());
+        form.AddField(Inputs.musicvalue, Storage.settings?.audiosettings.musicvalue.ToString());
+        Debug.Log(Storage.settings?.audiosettings.soundvalue.ToString());
+        /*  form.AddField(Inputs.attack, Storage.settings?.controlsettings.attack );
+          form.AddField(Inputs.activeitem, Storage.settings?.controlsettings.activeitem);
+          form.AddField(Inputs.moveback, Storage.settings?.controlsettings.moveback);
+          form.AddField(Inputs.movefront, Storage.settings?.controlsettings.movefront);
+          form.AddField(Inputs.moveleft, Storage.settings?.controlsettings.moveleft);
+          form.AddField(Inputs.moveright, Storage.settings?.controlsettings.moveright);*/
+        form.AddField(Inputs.attack, "It works");
 
-        form.AddField(Inputs.attack, /*Enter value*/"Ввести значение");
-        form.AddField(Inputs.activeitem, /*Enter value*/"Ввести значение");
-        form.AddField(Inputs.moveback, /*Enter value*/"Ввести значение");
-        form.AddField(Inputs.movefront, /*Enter value*/"Ввести значение");
-        form.AddField(Inputs.moveleft, /*Enter value*/"Ввести значение");
-        form.AddField(Inputs.moveright, /*Enter value*/"Ввести значение");
+        form.AddField(Inputs.screenmode, Storage.settings?.videosettings.screenmode.ToString());
+        form.AddField(Inputs.resolution, Storage.settings?.videosettings.resolution.ToString());
+        form.AddField(Inputs.quality, Storage.settings?.videosettings.quality.ToString());
+        form.AddField(Inputs.framerate, Storage.settings?.videosettings.framerate.ToString());
 
-        form.AddField(Inputs.screenmode, /*Enter value*/"3");
-        form.AddField(Inputs.resolution, /*Enter value*/"3");
-        form.AddField(Inputs.quality, /*Enter value*/"3");
-        form.AddField(Inputs.framerate, /*Enter value*/"3");
-
-        //other video and binds values
 
         using UnityWebRequest request = UnityWebRequest.Post(API.postSetSettings, form);
         yield return request.SendWebRequest();
@@ -403,7 +452,6 @@ public class DBManager : MonoBehaviour
         {
             yield break;
         }
-        displayInfo("You updated your settings!");
     }
     private IEnumerator GetSettings()
     {
@@ -421,8 +469,14 @@ public class DBManager : MonoBehaviour
         }
         //Debug.Log(payload?.settings.audiosettings.musicvalue);
         Storage.settings = payload?.settings;
-        Debug.Log(Storage.settings?.audiosettings.musicvalue);
-        displayInfo("Получена настройка " + payload?.settings.audiosettings + " с значением: " + payload?.settings.audiosettings.musicvalue);
+        
+        setVideoSetttings.Load(Storage.settings?.videosettings.screenmode,
+            Storage.settings?.videosettings.resolution,
+            Storage.settings?.videosettings.quality, 
+            Storage.settings?.videosettings.framerate);
+        setAudioSetttings.Load(Storage.settings?.audiosettings.soundvalue,
+            Storage.settings?.audiosettings.musicvalue);
+
     }
     private IEnumerator SetDefaultSettings()
     {
@@ -527,5 +581,10 @@ public class DBManager : MonoBehaviour
         {
             yield break;
         }
+        controller.SetLoginInMenu();
+    }
+    private void ClearUser()
+    {
+       Storage.user = new User(0.23f);
     }
 }
