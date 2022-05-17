@@ -24,7 +24,7 @@ namespace SaveData
             {
                 ScreenResolution = 2;
 
-                Quality = 2;
+                Quality = 5;
 
                 ScreenModed = 0;
 
@@ -67,8 +67,8 @@ namespace SaveData
                 public float SoundVolume;
                 public AudioSettings()
                 {
-                    MusicVolume = 0;
-                    SoundVolume = 0;
+                    MusicVolume = 1;
+                    SoundVolume = 1;
                 }
           
         }

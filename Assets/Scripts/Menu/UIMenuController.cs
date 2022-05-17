@@ -21,6 +21,13 @@ public class UIMenuController : MonoBehaviour
     private GameObject RegisterMenu;
     [SerializeField]
     private GameObject UpdatePasswordMenu;
+    [SerializeField]
+    private GameObject VideoSettingsMenu;
+    [SerializeField]
+    private GameObject AudioSettingsMenu;
+    [SerializeField]
+    private GameObject Header;
+
 
 
     void Start()
@@ -38,23 +45,35 @@ public class UIMenuController : MonoBehaviour
         LoginInMenu.SetActive(false);
         RegisterMenu.SetActive(false);
         UpdatePasswordMenu.SetActive(false);
+        AudioSettingsMenu.SetActive(false);
+        VideoSettingsMenu.SetActive(false);
+        Header.SetActive(false);
 
+    }
+    public void SetHeader()
+    {
+        Header.SetActive(true);
+    }
+    public void SetVideoSettings()
+    {
+        MenuClearArea();
+        VideoSettingsMenu.SetActive(true);
+
+    }
+    public void SetAudioSettings()
+    {
+        MenuClearArea();
+        AudioSettingsMenu.SetActive(true);
     }
     public void SetMainMenu()
     {
-
             MenuClearArea();
             MainMenu.SetActive(true);
-  
-   
     }
     public void SetUserMenu()
     {
- 
             MenuClearArea();
             UserMenu.SetActive(true);
-        
-    
     }
     public void SetSettingsMenu()
     {
@@ -88,4 +107,9 @@ public class UIMenuController : MonoBehaviour
         MenuClearArea();
         UpdatePasswordMenu.SetActive(true);
     }
+    public void ExitGame()
+    {
+        Application.Quit();
+    }
+
 }
