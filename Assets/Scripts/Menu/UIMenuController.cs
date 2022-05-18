@@ -27,6 +27,8 @@ public class UIMenuController : MonoBehaviour
     private GameObject AudioSettingsMenu;
     [SerializeField]
     private GameObject Header;
+    [SerializeField]
+    private GameObject ControlSettingsMenu;
 
 
 
@@ -48,7 +50,7 @@ public class UIMenuController : MonoBehaviour
         AudioSettingsMenu.SetActive(false);
         VideoSettingsMenu.SetActive(false);
         Header.SetActive(false);
-
+        ControlSettingsMenu.SetActive(false);
     }
     public void SetHeader()
     {
@@ -111,5 +113,9 @@ public class UIMenuController : MonoBehaviour
     {
         Application.Quit();
     }
-
+    public void SetControlSettings()
+    {
+        MenuClearArea();
+        ControlSettingsMenu.SetActive(true);
+    }
 }

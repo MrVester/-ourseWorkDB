@@ -132,11 +132,7 @@ public class SetVideoSettings : MonoBehaviour
         FramerateDropdown.value = _Framerate;
         Save();
     }
-    public void SetupVideoSettings()
-    {
-        Debug.Log(Storage.controlsettings?.attack);
-        //Load();
-    }
+
 
     public void Load( int? _Screenmode, int? _Resolution, int? _Quality,int? _Framerate)
     {

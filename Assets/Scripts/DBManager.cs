@@ -19,12 +19,8 @@ public record Inputs
     public static string newpassword = "newpassword";
     public static string soundvalue = "soundvalue";
     public static string musicvalue = "musicvalue";
-    public static string attack = "attack";
-    public static string activeitem = "activeitem";
-    public static string moveback = "moveback";
-    public static string movefront = "movefront";
-    public static string moveleft = "moveleft";
-    public static string moveright = "moveright";
+    public static string bindkey = "bindkey";
+    
     public static string screenmode = "screenmode";
     public static string resolution = "resolution";
     public static string quality = "quality";
@@ -116,21 +112,13 @@ public struct AudioSettings
 [Serializable]
 public struct ControlSettings
 {
-    public ControlSettings(string attack, string activeitem,string movefront, string moveleft, string moveback, string moveright)
+    public ControlSettings(string bindkey)
     {
-        this.attack = attack;
-        this.activeitem = activeitem;
-        this.movefront = movefront;
-        this.moveleft = moveleft;
-        this.moveback = moveback;
-        this.moveright = moveright;
+        this.bindkey = bindkey;
+     
     }
-    public string attack;
-    public string activeitem;
-    public string movefront;
-    public string moveleft;
-    public string moveback;
-    public string moveright;
+    public string bindkey;
+
 }
 [Serializable]
 public struct VideoSettings
@@ -208,6 +196,8 @@ public class DBManager : MonoBehaviour
     public SetVideoSettings setVideoSetttings;
 
     public SetAudioSettings setAudioSetttings;
+
+    public SetControlSettings setControlSetttings;
     public string GetIFTextWithTag(string tag)
     {
         if (GameObject.FindGameObjectWithTag(tag))
@@ -429,13 +419,9 @@ public class DBManager : MonoBehaviour
         form.AddField(Inputs.soundvalue, Storage.settings?.audiosettings.soundvalue.ToString());
         form.AddField(Inputs.musicvalue, Storage.settings?.audiosettings.musicvalue.ToString());
         Debug.Log(Storage.settings?.audiosettings.soundvalue.ToString());
-        /*  form.AddField(Inputs.attack, Storage.settings?.controlsettings.attack );
-          form.AddField(Inputs.activeitem, Storage.settings?.controlsettings.activeitem);
-          form.AddField(Inputs.moveback, Storage.settings?.controlsettings.moveback);
-          form.AddField(Inputs.movefront, Storage.settings?.controlsettings.movefront);
-          form.AddField(Inputs.moveleft, Storage.settings?.controlsettings.moveleft);
-          form.AddField(Inputs.moveright, Storage.settings?.controlsettings.moveright);*/
-        form.AddField(Inputs.attack, "It works");
+         
+      
+        form.AddField(Inputs.bindkey, Storage.settings?.controlsettings.bindkey);
 
         form.AddField(Inputs.screenmode, Storage.settings?.videosettings.screenmode.ToString());
         form.AddField(Inputs.resolution, Storage.settings?.videosettings.resolution.ToString());
@@ -476,7 +462,7 @@ public class DBManager : MonoBehaviour
             Storage.settings?.videosettings.framerate);
         setAudioSetttings.Load(Storage.settings?.audiosettings.soundvalue,
             Storage.settings?.audiosettings.musicvalue);
-
+        setControlSetttings.Load(Storage.settings?.controlsettings.bindkey);
     }
     private IEnumerator SetDefaultSettings()
     {

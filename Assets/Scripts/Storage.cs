@@ -49,12 +49,8 @@ public static class Storage
         get { return _settings.controlsettings; }
         set
         {
-            if (value?.attack == null) return;
-            if (value?.activeitem == null) return;
-            if (value?.movefront == null) return;
-            if (value?.moveback == null) return;
-            if (value?.moveleft == null) return;
-            if (value?.moveright == null) return;
+            if (value?.bindkey == null) return;
+
 
 
 
