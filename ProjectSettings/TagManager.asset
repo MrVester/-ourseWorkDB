@@ -11,6 +11,18 @@ TagManager:
   - RepeatPassword
   - RepeatNewPassword
   - InfoText
+  - Rooms
+  - Enemy
+  - RoomPoint
+  - Boots
+  - Knife
+  - Shield
+  - Potion
+  - Wall
+  - Bandage
+  - Dagger
+  - Active
+  - Passive
   layers:
   - Default
   - TransparentFX

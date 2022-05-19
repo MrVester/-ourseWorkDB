@@ -20,7 +20,7 @@ public record Inputs
     public static string soundvalue = "soundvalue";
     public static string musicvalue = "musicvalue";
     public static string bindkey = "bindkey";
-    
+
     public static string screenmode = "screenmode";
     public static string resolution = "resolution";
     public static string quality = "quality";
@@ -115,7 +115,7 @@ public struct ControlSettings
     public ControlSettings(string bindkey)
     {
         this.bindkey = bindkey;
-     
+
     }
     public string bindkey;
 
@@ -191,6 +191,7 @@ public struct PassiveItem
 
 public class DBManager : MonoBehaviour
 {
+    public Player player;
     public UIMenuController controller;
 
     public SetVideoSettings setVideoSetttings;
@@ -218,7 +219,7 @@ public class DBManager : MonoBehaviour
             return default(P);
         }*/
         return GameObject.FindGameObjectWithTag(tag).GetComponent<P>();
-        
+
     }
     readonly Dictionary<string, string> Errors = new Dictionary<string, string>()
     {
@@ -264,13 +265,15 @@ public class DBManager : MonoBehaviour
     {
         StartCoroutine(GetCharacter());
     }
-    public void StartGetnSetActiveItem()
+    public void StartGetnSetActiveItem(Collider2D collider)
     {
-        StartCoroutine(GetnSetActiveItem());
+        if (collider)
+            StartCoroutine(GetnSetActiveItem(collider));
     }
-    public void StartGetnSetPassiveItem()
+    public void StartGetnSetPassiveItem(Collider2D collider)
     {
-        StartCoroutine(GetnSetPassiveItem());
+        if (collider)
+            StartCoroutine(GetnSetPassiveItem(collider));
     }
     public void StartClearItems()
     {
@@ -351,11 +354,11 @@ public class DBManager : MonoBehaviour
         }
         Storage.user = payload?.user;
         StartCoroutine(SetDefaultSettings());
-        
+
         StartCoroutine(GetSettings());
-       
+
         controller.SetMainMenu();
-       
+
     }
     private IEnumerator Login()
     {
@@ -378,10 +381,10 @@ public class DBManager : MonoBehaviour
         Debug.Log(Storage.user?.login);
 
         StartCoroutine(GetSettings());
-        
-       
+
+
         controller.SetMainMenu();
-       
+
     }
     private IEnumerator UpdateUser()
     {
@@ -419,8 +422,8 @@ public class DBManager : MonoBehaviour
         form.AddField(Inputs.soundvalue, Storage.settings?.audiosettings.soundvalue.ToString());
         form.AddField(Inputs.musicvalue, Storage.settings?.audiosettings.musicvalue.ToString());
         Debug.Log(Storage.settings?.audiosettings.soundvalue.ToString());
-         
-      
+
+
         form.AddField(Inputs.bindkey, Storage.settings?.controlsettings.bindkey);
 
         form.AddField(Inputs.screenmode, Storage.settings?.videosettings.screenmode.ToString());
@@ -455,10 +458,10 @@ public class DBManager : MonoBehaviour
         }
         //Debug.Log(payload?.settings.audiosettings.musicvalue);
         Storage.settings = payload?.settings;
-        
+
         setVideoSetttings.Load(Storage.settings?.videosettings.screenmode,
             Storage.settings?.videosettings.resolution,
-            Storage.settings?.videosettings.quality, 
+            Storage.settings?.videosettings.quality,
             Storage.settings?.videosettings.framerate);
         setAudioSetttings.Load(Storage.settings?.audiosettings.soundvalue,
             Storage.settings?.audiosettings.musicvalue);
@@ -484,7 +487,7 @@ public class DBManager : MonoBehaviour
     private IEnumerator GetDifficulty()
     {
         WWWForm form = new WWWForm();
-        form.AddField(Inputs.difficulty, "1");
+        form.AddField(Inputs.difficulty, "2");
 
         using UnityWebRequest request = UnityWebRequest.Post(API.postGetDifficultyParams, form);
         yield return request.SendWebRequest();
@@ -496,11 +499,13 @@ public class DBManager : MonoBehaviour
         {
             yield break;
         }
-        Debug.Log(payload?.difficulty.mobshpmult + "  " + payload?.difficulty.mobsdamagemult);
+        Enemy.mult = (Difficulty)payload?.difficulty;
+        // Debug.Log(payload?.difficulty.mobshpmult + "  " + payload?.difficulty.mobsdamagemult);
     }
     private IEnumerator GetCharacter()
     {
         WWWForm form = new WWWForm();
+        form.AddField(Inputs.login, "1");
         form.AddField(Inputs.character, "assassin");
 
         using UnityWebRequest request = UnityWebRequest.Post(API.postGetCharacterParams, form);
@@ -513,13 +518,14 @@ public class DBManager : MonoBehaviour
         {
             yield break;
         }
-        Debug.Log(payload?.character.hp + "  " + payload?.character.damage + "  " + payload?.character.speed + "  " + payload?.character.armor);
+        Player.character = (Character)payload?.character;
+        //Debug.Log(payload?.character.hp + "  " + payload?.character.damage + "  " + payload?.character.speed + "  " + payload?.character.armor);
     }
-    private IEnumerator GetnSetActiveItem()
+    public IEnumerator GetnSetActiveItem(Collider2D collider)
     {
         WWWForm form = new WWWForm();
-        form.AddField(Inputs.login, Storage.user?.login);
-        form.AddField(Inputs.item, "bandage");
+        form.AddField(Inputs.login, "1");
+        form.AddField(Inputs.item, collider.name);
 
         using UnityWebRequest request = UnityWebRequest.Post(API.postGetActiveItemParams, form);
         yield return request.SendWebRequest();
@@ -531,18 +537,20 @@ public class DBManager : MonoBehaviour
         {
             yield break;
         }
-        Debug.Log(payload?.activeitem.hp + "  " + payload?.activeitem.damage);
+        Player.SetActiveStats((ActiveItem)(payload?.activeitem));
+        player.OnActive(collider);
+        //Debug.Log(payload?.activeitem.hp + "  " + payload?.activeitem.damage);
     }
 
-    private IEnumerator GetnSetPassiveItem()
+    public IEnumerator GetnSetPassiveItem(Collider2D collider)
     {
         WWWForm form = new WWWForm();
-        form.AddField(Inputs.login, Storage.user?.login);
-        form.AddField(Inputs.item, "apple");
+        form.AddField(Inputs.login, "1");
+        form.AddField(Inputs.item, collider.name);
 
         using UnityWebRequest request = UnityWebRequest.Post(API.postGetPassiveItemParams, form);
         yield return request.SendWebRequest();
-        Debug.Log(request.downloadHandler.text);
+        // Debug.Log(request.downloadHandler.text);
         PassiveItemPayload? payload = handleRequest<PassiveItemPayload>(request);
 
 
@@ -550,7 +558,9 @@ public class DBManager : MonoBehaviour
         {
             yield break;
         }
-        Debug.Log(payload?.passiveitem.hp + "  " + payload?.passiveitem.hpboost + "  " + payload?.passiveitem.damage + "  " + payload?.passiveitem.speed + "  " + payload?.passiveitem.armor);
+        Player.SetPassiveStats((PassiveItem)(payload?.passiveitem));
+        player.OnPassive(collider);
+        //Debug.Log(payload?.passiveitem.hp + "  " + payload?.passiveitem.hpboost + "  " + payload?.passiveitem.damage + "  " + payload?.passiveitem.speed + "  " + payload?.passiveitem.armor);
     }
 
     private IEnumerator ClearItems()
@@ -571,6 +581,6 @@ public class DBManager : MonoBehaviour
     }
     private void ClearUser()
     {
-       Storage.user = new User(0.23f);
+        Storage.user = new User(0.23f);
     }
 }
