@@ -19,6 +19,9 @@ public class AccountController : MonoBehaviour
     }
     public void Exit()
     {
-        
+        dbmanager.StartClearItems();
+        dbmanager.ClearLocalUser();
+        Application.Quit();
+
     }
 }

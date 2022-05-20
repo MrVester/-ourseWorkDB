@@ -158,18 +158,20 @@ public class Player : MonoBehaviour
     {
         if (active.name == "Dagger")
         {
-            Destroy(active.gameObject);
+            
             ActiveBandage();
             dagger.SetActive(true);
             daggerIcon.gameObject.SetActive(true);
+            Destroy(active.gameObject);
 
         }
         if (active.name == "Bandage")
         {
-            Destroy(active.gameObject);
+           
             ActiveDagger();
             bandage.SetActive(true);
             bandageIcon.gameObject.SetActive(true);
+            Destroy(active.gameObject);
 
         }
     }

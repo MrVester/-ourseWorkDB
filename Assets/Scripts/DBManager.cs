@@ -257,13 +257,13 @@ public class DBManager : MonoBehaviour
     {
         StartCoroutine(SetSettings());
     }
-    public void StartGetDifficulty()
+    public void StartGetDifficulty(string dif)
     {
-        StartCoroutine(GetDifficulty());
+        StartCoroutine(GetDifficulty(dif));
     }
-    public void StartGetCharacter()
+    public void StartGetCharacter(string character)
     {
-        StartCoroutine(GetCharacter());
+        StartCoroutine(GetCharacter(character));
     }
     public void StartGetnSetActiveItem(Collider2D collider)
     {
@@ -484,10 +484,10 @@ public class DBManager : MonoBehaviour
         displayInfo("Default Settings Set");
     }
 
-    private IEnumerator GetDifficulty()
+    private IEnumerator GetDifficulty(string difficultyvalue)
     {
         WWWForm form = new WWWForm();
-        form.AddField(Inputs.difficulty, "2");
+        form.AddField(Inputs.difficulty, difficultyvalue);
 
         using UnityWebRequest request = UnityWebRequest.Post(API.postGetDifficultyParams, form);
         yield return request.SendWebRequest();
@@ -502,11 +502,11 @@ public class DBManager : MonoBehaviour
         Enemy.mult = (Difficulty)payload?.difficulty;
         // Debug.Log(payload?.difficulty.mobshpmult + "  " + payload?.difficulty.mobsdamagemult);
     }
-    private IEnumerator GetCharacter()
+    private IEnumerator GetCharacter(string charactername)
     {
         WWWForm form = new WWWForm();
-        form.AddField(Inputs.login, "1");
-        form.AddField(Inputs.character, "assassin");
+        form.AddField(Inputs.login, Storage.user?.login);
+        form.AddField(Inputs.character, charactername);
 
         using UnityWebRequest request = UnityWebRequest.Post(API.postGetCharacterParams, form);
         yield return request.SendWebRequest();
@@ -524,7 +524,7 @@ public class DBManager : MonoBehaviour
     public IEnumerator GetnSetActiveItem(Collider2D collider)
     {
         WWWForm form = new WWWForm();
-        form.AddField(Inputs.login, "1");
+        form.AddField(Inputs.login, Storage.user?.login);
         form.AddField(Inputs.item, collider.name);
 
         using UnityWebRequest request = UnityWebRequest.Post(API.postGetActiveItemParams, form);
@@ -545,7 +545,7 @@ public class DBManager : MonoBehaviour
     public IEnumerator GetnSetPassiveItem(Collider2D collider)
     {
         WWWForm form = new WWWForm();
-        form.AddField(Inputs.login, "1");
+        form.AddField(Inputs.login, Storage.user?.login);
         form.AddField(Inputs.item, collider.name);
 
         using UnityWebRequest request = UnityWebRequest.Post(API.postGetPassiveItemParams, form);

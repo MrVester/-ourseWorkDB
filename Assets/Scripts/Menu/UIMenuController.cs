@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 public class UIMenuController : MonoBehaviour
 {
 
@@ -109,13 +109,14 @@ public class UIMenuController : MonoBehaviour
         MenuClearArea();
         UpdatePasswordMenu.SetActive(true);
     }
-    public void ExitGame()
-    {
-        Application.Quit();
-    }
+  
     public void SetControlSettings()
     {
         MenuClearArea();
         ControlSettingsMenu.SetActive(true);
+    }
+    public void StartGame()
+    {
+        SceneManager.LoadScene("Game");
     }
 }
