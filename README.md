@@ -1,7 +1,7 @@
 # CourseWorkDB
 CourseWork
 
-Download: <a href="https://github.com/MrVester/CourseWorkDB/releases/tag/old" download="RoqueLike">RoqueLike</a>
+Download link: <a href="https://github.com/MrVester/CourseWorkDB/releases/tag/old" download="RoqueLikePrototype">RoqueLikePrototype</a>
 
 Проект служит примером работы игрового приложения и сервера.
 В игре есть самописная авторизация которая подключена к серверу.
