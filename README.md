@@ -1,7 +1,7 @@
 # CourseWorkDB
 CourseWork
 
-<a href="https://github.com/MrVester/CourseWorkDB/releases/tag/old" download="RoqueLike">Redemption</a>
+Download: <a href="https://github.com/MrVester/CourseWorkDB/releases/tag/old" download="RoqueLike">Redemption</a>
 
 Проект служит примером работы игрового приложения и сервера.
 В игре есть самописная авторизация которая подключена к серверу.
