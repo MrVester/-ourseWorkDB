@@ -9,7 +9,7 @@ Download link: <a href="https://github.com/MrVester/CourseWorkDB/releases/tag/ol
 В проекте реализована работа сервера в виде:Авторизации, Регистрации, Сохранение и сам прототип игры.
 
 
-Над проектом работали :Спитцын Макар, Аверченков Михаил, Влад Штырба.
+Над проектом работали :Спицын Макар, Аверченков Михаил, Влад Штырба.
 
 ![image](https://user-images.githubusercontent.com/71410796/219430740-1a938d99-4343-4826-b258-2ade4ad87d4f.png)
 ![image](https://user-images.githubusercontent.com/71410796/219430800-a16fad08-786e-4041-afa3-6865d95c1b92.png)
